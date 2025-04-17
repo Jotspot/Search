@@ -9,10 +9,10 @@ Feel free to explore it, tweak it, or laugh at its current performance. Improvem
 ## 🖼️ Preview
 
 <!-- Add a screenshot of the homepage UI -->
-[![31K1YEN.md.jpg](https://iili.io/31K1YEN.md.jpg)](https://freeimage.host/i/31K1YEN)
+[![Search.jpg](https://i.postimg.cc/T3vBXRMQ/Search.jpg)](https://postimg.cc/Vd4KqPNb)
 
 <!-- Add a second image, e.g., search result view -->
-[![31K17Bp.md.jpg](https://iili.io/31K17Bp.md.jpg)](https://freeimage.host/i/31K17Bp)
+[![Search-8-38pm-04-17.jpg](https://i.postimg.cc/jS6mxGRT/Search-8-38pm-04-17.jpg)](https://postimg.cc/CR1mJrZr)
 ---
 
 ## ⚙️ How to Run `app.py`
