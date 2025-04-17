@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <style>
+    body, html {
+      font-family: "Jost", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      padding: 0 80px;
+    }
+
+    .container.has-results {
+     margin-top: 40px; /* adjust to taste */
+    }
+
+    .full-height {
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container.full-height {
+      display: flex;
+    }
+
+    .title {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .searchbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    #bar {
+      width: 100%;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 999px;
+      border: 1px solid gray;
+      outline: none;
+      transition: transform 0.1s ease-in-out, box-shadow 0.5s ease;
+      box-shadow: none;
+      position: relative;
+      z-index: 2;
+    }
+
+    #bar:focus {
+      box-shadow: 0 0 100px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    #bar:active {
+      transform: scale(0.95);
+    }
+
+    #go {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 999px;
+      border: 1px solid gray;
+      background-color: white;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    #go:active {
+      transform: scale(0.8);
+    }
+
+    #go:hover {
+      transform: rotate(10deg);
+    }
+
+    .inputs {
+      font-family: "Jost", sans-serif;
+    }
+
+    .results {
+      margin-top: 20px;
+      max-width: 700px;
+      width: 100%;
+    }
+
+    .results ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .results li {
+      margin: 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      font-size: 18px;
+      text-align: left;
+    }
+
+    .results a {
+      text-decoration: none;
+      color: #0077cc;
+      font-weight: 500;
+    }
+
+    .results a:hover {
+      text-decoration: underline;
+    }
+
+    /*/ Thanks to this article for helping with the animation! https://www.weibozhang.com/blog/2024/gemini-loading-animation/*/
+
+    @keyframes expanding {
+    0% {
+        transform: scaleX(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+}
+ 
+/* This keyframe will create the loading gradient effect */
+@keyframes moving {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.loading-section {
+  margin: 30px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+ 
+.loading-bar {
+    height: 1.25rem;
+    transform-origin: left; /* Without this, you'll notice the `expanding` animation starts expanding from the  middle instead of shooting out from the left */
+    animation: expanding 0.4s 0.7s forwards linear, moving 1s 1s infinite forwards linear;
+    border-radius: 0.125rem;
+    background-image: linear-gradient(to right, #eff6ff 30%, #2563eb60 60%, #eff6ff);
+    background-size: 200% auto;
+    opacity: 0; /* The `expanding` animation will fade in the loading bar */
+    animation-delay: 100ms;
+    margin-bottom: 16px; 
+}
+
+.whiteout {
+  box-shadow: 0 0 100px 5px white !important;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container {% if not query and not results %} full-height
+  {% else %} has-results
+  {% endif %}">
+    {% if not results and not query %}
+      <h1 class="title" id="title">Search</h1>
+    {% endif %}
+
+    <form class="searchbar" action="/" method="get">
+      <input class="inputs" id="bar" type="text" name="q" value="{{ query }}" placeholder="Search..." autocomplete="off">
+      <button class="inputs" type="submit" id="go">Go!</button>
+    </form>
+
+    <div class="results">
+      {% if results %}
+        <ul>
+          {% for result in results %}
+            <li><a href="{{ result['URL'] }}" target="_blank">{{ result['Title'] }}</a></li>
+          {% endfor %}
+        </ul>
+      {% elif query %}
+        <p>No results found for "{{ query }}".</p>
+      {% endif %}
+    </div>
+
+    <div id="fakeResults" class="results hidden"></div>
+
+  </div>
+
+  <script>
+    const form = document.querySelector("form");
+    const fakeResults = document.getElementById("fakeResults");
+    const container = document.querySelector(".container");
+    const title = document.getElementById("title");
+    const input = document.getElementById("bar");
+  
+    input.addEventListener("focus", () => {
+      input.classList.remove("whiteout");
+    });
+  
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+  
+      if (title) title.style.display = "none";
+  
+      container.classList.remove("full-height");
+      container.classList.add("has-results");
+      input.classList.add("whiteout");
+  
+      fakeResults.classList.remove("hidden");
+      fakeResults.innerHTML = "";
+  
+      // 🔁 Create 6 sections instead of 3
+      for (let s = 0; s < 6; s++) {
+        const section = document.createElement("div");
+        section.className = "loading-section";
+  
+        for (let i = 0; i < 2; i++) {
+          const bar = document.createElement("div");
+          bar.className = "loading-bar";
+  
+          // Width between 65% and 100%
+          const randomWidth = Math.floor(Math.random() * 36) + 65;
+          bar.style.width = `${randomWidth}%`;
+  
+          // Random playback speed for shimmer
+          const moveSpeed = (Math.random() * 1.5 + 0.5).toFixed(2);
+          bar.style.animation = `expanding 0.3s 0s forwards linear, moving ${moveSpeed}s 0s infinite linear`;
+  
+          section.appendChild(bar);
+        }
+  
+        fakeResults.appendChild(section);
+      }
+  
+      setTimeout(() => {
+        form.submit();
+      }, 100);
+    });
+  </script>
+  
+  
+  
+  
+</body>
+</html>
